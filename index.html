@@ -3,128 +3,414 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>স্মার্ট গ্যাজেট ও হোম ডেকর মার্ট</title>
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <title>Al Khitmah Center</title>
+    
+    <script>
+        // এখানে আপনার Facebook Pixel ID টি বসাবেন
+        const FACEBOOK_PIXEL_ID = '1017854387581970';
+        
+        if(FACEBOOK_PIXEL_ID && FACEBOOK_PIXEL_ID !== 'YOUR_PIXEL_ID_HERE') {
+            !function(f,b,e,v,n,t,s)
+            {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+            n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+            if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+            n.queue=[];t=b.createElement(e);t.async=!0;
+            t.src=v;s=b.getElementsByTagName(e)[0];
+            s.parentNode.insertBefore(t,s)}(window, document,'script',
+            'https://connect.facebook.net/en_US/fbevents.js');
+            fbq('init', FACEBOOK_PIXEL_ID);
+            fbq('track', 'PageView');
+        }
+        
+        function trackPixelEvent(eventName, data = {}) {
+            if(typeof fbq === 'function') {
+                fbq('track', eventName, data);
+                console.log(`Pixel Tracked: ${eventName}`, data);
+            }
+        }
+    </script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
-        html { scroll-behavior: smooth; }
+        :root { --red: #ff0000; --green: #25d366; --blue: #007bff; --bg: #f4f4f4; --dark: #333; }
+        * { margin:0; padding:0; box-sizing:border-box; font-family: 'Segoe UI', sans-serif; }
+        body { background: var(--bg); padding-bottom: 100px; }
+        header { background: white; padding: 15px; text-align: center; border-bottom: 2px solid #ddd; position: sticky; top: 0; z-index: 1000; display: flex; justify-content: space-between; align-items: center; }
+        .brand { font-size: 22px; font-weight: bold; margin-left: auto; margin-right: auto; }
+        .brand span { color: var(--red); }
+        .menu-dot { font-size: 28px; cursor: pointer; color: #333; font-weight: bold; background: none; border: none; }
+        .header-actions { display: flex; gap: 15px; align-items: center; position: absolute; right: 20px; top: 15px; }
+        .cart-icon-btn { font-size: 24px; cursor: pointer; background: none; border: none; position: relative; }
+        .cart-count { position: absolute; top: -5px; right: -8px; background: var(--red); color: white; border-radius: 50%; padding: 2px 6px; font-size: 11px; font-weight: bold; }
+        
+        .search-container { padding: 10px; background: white; border-bottom: 1px solid #eee; }
+        .search-box { width: 100%; padding: 10px 15px; border: 1px solid #ccc; border-radius: 25px; outline: none; font-size: 14px; }
+        
+        .side-menu { position: fixed; top: 0; left: -300px; width: 300px; height: 100%; background: white; z-index: 6000; transition: 0.4s; box-shadow: 2px 0 15px rgba(0,0,0,0.2); padding: 25px 20px; overflow-y: auto; }
+        .side-menu.active { left: 0; }
+        .menu-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 5900; display: none; }
+        .menu-item { padding: 15px; border-bottom: 1px solid #f1f1f1; display: flex; align-items: center; gap: 12px; cursor: pointer; font-size: 15px; color: #444; }
+        .products { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 10px; }
+        .card { background: white; border-radius: 12px; padding: 10px; text-align: center; border: 1px solid #eee; display: flex; flex-direction: column; justify-content: space-between; }
+        .card img { width: 100%; height: 120px; object-fit: contain; border-radius: 8px; cursor: pointer; transition: 0.2s; }
+        .card img:hover { transform: scale(1.03); }
+        .benefit-box { font-size: 11px; color: #444; background: #f0fdf4; padding: 8px; margin: 8px 0; border-radius: 5px; text-align: left; min-height: 55px; border-left: 3px solid var(--green); line-height: 1.4; overflow: hidden; flex-grow: 1; }
+        .price { color: var(--red); font-weight: bold; font-size: 17px; }
+        .old-price { color: #999; text-decoration: line-through; font-size: 12px; margin-left: 5px; }
+        
+        .buy-btn { background: var(--red); color: white; width: 100%; padding: 10px; border: none; border-radius: 20px; font-weight: bold; cursor: pointer; margin-top: 5px; }
+        .add-cart-btn { background: var(--blue); color: white; width: 100%; padding: 8px; border: none; border-radius: 20px; font-weight: bold; cursor: pointer; margin-top: 5px; font-size: 12px; }
+        
+        .panel { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 7000; display: none; padding: 25px; overflow-y: auto; }
+        .close-btn { float: right; font-size: 30px; border: none; background: none; color: #999; cursor: pointer; }
+        input, textarea, select { width: 100%; padding: 12px; margin-bottom: 12px; border: 1px solid #ccc; border-radius: 8px; }
+        .nav { position: fixed; bottom: 0; width: 100%; background: #fff; display: flex; justify-content: space-around; align-items: center; padding: 10px 0; z-index: 2000; border-top: 1px solid #eee; height: 75px; }
+        .nav-btn { color: #555; text-align: center; font-size: 11px; background: none; border: none; flex: 1; cursor: pointer; display: flex; flex-direction: column; align-items: center; text-decoration: none; }
+        .nav-btn img { width: 24px; margin-bottom: 4px; }
+        .home-link { background: var(--red); width: 65px; height: 65px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 5px solid white; position: relative; top: -25px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+        .home-link img { filter: invert(1); width: 35px; }
+        .call-action-btn { background: var(--blue); color: white; width: 100%; padding: 15px; border: none; border-radius: 30px; font-weight: bold; display: flex; align-items: center; justify-content: center; text-decoration: none; margin-bottom: 10px; }
+        .sms-action-btn { background: #6c757d; color: white; width: 100%; padding: 15px; border: none; border-radius: 30px; font-weight: bold; display: flex; align-items: center; justify-content: center; text-decoration: none; }
+        .wa-btn { background: var(--green); color: white; width: 100%; padding: 15px; border: none; border-radius: 30px; font-weight: bold; display: flex; align-items: center; justify-content: center; text-decoration: none; margin-bottom: 10px; }
+        
+        .img-popup { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 8000; display: none; justify-content: center; align-items: center; flex-direction: column; padding: 20px; }
+        .img-popup img { max-width: 100%; max-height: 70vh; border-radius: 12px; box-shadow: 0 5px 25px rgba(255,255,255,0.2); object-fit: contain; }
+        .popup-close-btn { margin-top: 20px; background: white; color: black; border: none; padding: 12px 30px; border-radius: 25px; font-weight: bold; font-size: 16px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+
+        .filter-container { margin-bottom: 15px; display: flex; gap: 5px; overflow-x: auto; padding: 5px; }
+        .filter-btn { padding: 8px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 12px; white-space: nowrap; }
+        
+        .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #eee; margin-bottom: 10px; color: black; }
+        .cart-item-remove { color: red; cursor: pointer; font-weight: bold; }
     </style>
 </head>
-<body class="bg-gray-50 text-gray-800 font-sans">
-
-    <header class="bg-gradient-to-r content-center from-indigo-900 to-purple-800 text-white py-12 px-4 text-center shadow-lg">
-        <h1 class="text-3xl md:text-5xl font-extrabold mb-4">স্মার্ট লাইফস্টাইল ও গ্যাজেট কালেকশন</h1>
-        <p class="text-lg md:text-xl text-purple-200 mb-6">দৈনন্দিন জীবনকে সহজ করতে সেরা গ্যাজেট, লাইট, ফ্যান এবং নান্দনিক ফুলের টব এখন এক জায়গায়!</p>
-        <div class="bg-red-500 text-white inline-block px-6 py-2 rounded-full font-bold text-sm animate-pulse">
-            🔥 আজকের অর্ডারে ৫০% পর্যন্ত বিশাল ছাড়!
+<body>
+    <header>
+        <div class="brand">AL KHITMAH <span>CENTER</span></div>
+        <div class="header-actions">
+            <button class="cart-icon-btn" onclick="openPanel('cartPanel')">🛒<span class="cart-count" id="cartCount">0</span></button>
+            <div class="menu-dot" onclick="toggleMenu()">⋮</div>
         </div>
     </header>
 
-    <main class="max-w-6xl mx-auto px-4 py-12">
-        <h2 class="text-3xl font-bold text-center mb-10 text-gray-900 border-b-4 border-indigo-600 inline-block pb-2 mx-auto block w-fit">আমাদের ট্রেন্ডিং প্রোডাক্টসমূহ</h2>
+    <div class="search-container">
+        <input type="text" id="searchBar" class="search-box" placeholder="পণ্য বা ওষুধের নাম লিখে সার্চ করুন..." oninput="searchProducts()">
+    </div>
+    
+    <div class="menu-overlay" id="menuOverlay" onclick="toggleMenu()"></div>
+    <div class="side-menu" id="sideMenu">
+        <h2 style="color: var(--red); border-bottom: 2px solid var(--red); padding-bottom: 10px; margin-bottom: 20px;">মেনু</h2>
+        <div class="menu-item" onclick="openPanel('aboutPanel'); toggleMenu()">🌟 আমাদের বিশেষত্ব কেন?</div>
+        <div class="menu-item" onclick="location.href='https://wa.me/8801812257950'">💬 কাস্টমার সাপোর্ট</div>
+        <div class="menu-item" onclick="toggleMenu()" style="color: red; margin-top: 30px;">✖ বন্ধ করুন</div>
+    </div>
+    
+    <div id="aboutPanel" class="panel">
+        <button class="close-btn" onclick="closePanel('aboutPanel')">✕</button>
+        <h2 style="margin-top:40px; color:var(--red);">আমাদের বিশেষত্ব কেন?</h2><br>
+        <p style="line-height:1.6; color:#444;"> ১. ১০০% বিশুদ্ধ ও প্রাকৃতিক পণ্যের নিশ্চয়তা।<br> ২. সরাসরি নিজস্ব তত্ত্বাবধানে উৎপাদিত এবং সংগৃহীত।<br> ৩. স্বাস্থ্যসম্মত উপায়ে প্যাকেজিং করা হয়।<br> ৪. দ্রুত ডেলিভারি ও মানসম্মত কাস্টমার সাপোর্ট।<br><br> আমাদের উপর আস্থা রাখার জন্য ধন্যবাদ। </p>
+    </div>
+    
+    <div class="products" id="grid"></div>
+    
+    <div id="cartPanel" class="panel">
+        <button class="close-btn" onclick="closePanel('cartPanel')">✕</button>
+        <h3 style="margin-top:40px; color:var(--blue); margin-bottom:20px;">🛒 আপনার শপিং ঝুড়ি</h3>
+        <div id="cartItemsList"></div>
+        <div style="font-size:18px; font-weight:bold; margin:20px 0; text-align:right; color: black;">মোট পণ্যের দাম: ৳<span id="cartSubTotal">0</span></div>
+        <button onclick="checkoutCart()" style="background:var(--green); color:white; width:100%; padding:12px; border:none; border-radius:25px; font-weight:bold; cursor:pointer;">সব একসাথে অর্ডার করুন</button>
+    </div>
+
+    <div id="imagePopup" class="img-popup">
+        <img id="popupImg" src="">
+        <button class="popup-close-btn" onclick="closeImagePopup()">✕ বন্ধ করুন</button>
+    </div>
+
+    <a href="https://wa.me/8801812257950?text=হ্যালো,%20আমি%20একটি%20প্রোডাক্ট%20সম্পর্কে%20জানতে%20চাই।" 
+       style="position:fixed; width:55px; height:55px; bottom:90px; right:20px; background-color:#25d366; color:#FFF; border-radius:50px; text-align:center; font-size:32px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index:5000; display:flex; align-items:center; justify-content:center; text-decoration:none;" 
+       target="_blank">💬</a>
+
+    <div id="discount-popup" style="display:none; position:fixed; z-index:9999; left:0; top:0; width:100%; height:100%; background-color:rgba(0,0,0,0.7); justify-content:center; align-items:center; padding:20px;">
+      <div style="background-color:#fff; padding:25px; border-radius:15px; width:100%; max-width:360px; text-align:center; position:relative; box-shadow: 0 5px 25px rgba(0,0,0,0.3);">
+        <span onclick="document.getElementById('discount-popup').style.display='none'" 
+              style="position:absolute; top:10px; right:20px; font-size:28px; cursor:pointer; color:#aaa; font-weight:bold;">&times;</span>
+        <h2 style="color:var(--green); margin-bottom:12px;">🌸 আসসালামু আলাইকুম 🌸</h2>
+        <p style="font-size:15px; color:#333; line-height:1.6; margin-bottom:20px;">
+          আমাদের **আল-খিদমাহセンター** ওয়েবসাইটে আসার জন্য আপনাকে অসংখ্য ধন্যবাদ। <br>
+          <span style="color:#555; font-size:13px;">আপনার সুস্বাস্থ্য ও দীর্ঘায়ু কামনায় আমরা দিচ্ছি ১০০% বিশুদ্ধ ও প্রিমিয়াম কোয়ালিটির পণ্য।</span>
+        </p>
+        <button onclick="document.getElementById('discount-popup').style.display='none'" 
+                style="background-color:var(--green); color:white; padding:12px 30px; border:none; border-radius:25px; font-size:15px; font-weight:bold; cursor:pointer; width:100%;">ধন্যবাদ</button>
+      </div>
+    </div>
+    
+    <div class="nav">
+        <button class="nav-btn" onclick="openPanel('categoryPanel')"><img src="https://cdn-icons-png.flaticon.com/512/711/711194.png">Category</button>
+        <a href="https://wa.me/8801812257950" class="nav-btn"><img src="https://cdn-icons-png.flaticon.com/512/5968/5968841.png">Message</a>
+        <div class="home-btn-container"><button class="nav-btn home-link" onclick="location.reload()"><img src="https://cdn-icons-png.flaticon.com/512/1946/1946436.png"></button></div>
+        <button class="nav-btn" onclick="openPanel('cartPanel')"><img src="https://cdn-icons-png.flaticon.com/512/1170/1170678.png">Cart</button>
+        <a href="https://wa.me/8801812257950?text=হ্যালো" class="nav-btn"><img src="https://cdn-icons-png.flaticon.com/512/1077/1077063.png">Support</a>
+    </div>
+    
+    <div id="categoryPanel" class="panel">
+        <button class="close-btn" onclick="closePanel('categoryPanel')">✕</button>
+        <h3 style="margin-top:50px; text-align:center; color:var(--red);">ক্যাটাগরি সিলেক্ট করুন</h3><br>
+        <div class="menu-item" onclick="render('সব পণ্য'); closePanel('categoryPanel')">📦 সব পণ্য</div>
+        <div class="menu-item" onclick="render('গ্যাজেট ও ইলেকট্রনিক্স'); closePanel('categoryPanel')">🔌 গ্যাজেট ও ইলেকট্রনিক্স</div>
+        <div class="menu-item" onclick="render('স্মার্ট লাইট ও ফ্যান'); closePanel('categoryPanel')">💡 SMART লাইট ও ফ্যান</div>
+        <div class="menu-item" onclick="render('হোম ডেকর ও টব'); closePanel('categoryPanel')">🌸 হোম ডেকর ও টব</div>
+    </div>
+    
+    <div id="orderForm" class="panel">
+        <button class="close-btn" onclick="closePanel('orderForm')">✕</button>
+        <h3 id="selectedInfo" style="margin-top:40px; color:var(--red);">অর্ডার ফরম</h3><br>
+        <input type="text" id="custName" placeholder="আপনার নাম *">
+        <input type="number" id="custPhone" placeholder="মোবাইল নাম্বার *">
         
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            
-            <div class="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition flex flex-col justify-between">
-                <img src="https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=500&auto=format&fit=crop&q=60" alt="স্মার্ট ওয়াচ গ্যাজেট" class="w-full h-48 object-cover">
-                <div class="p-5 flex-grow">
-                    <span class="text-xs font-bold bg-indigo-100 text-indigo-800 px-2.5 py-1 rounded">স্মার্ট গ্যাজেট</span>
-                    <h3 class="text-xl font-bold mt-2">মাল্টিফাংশনাল রিচার্জেবল মিনি ভ্যাকুয়াম ক্লিনার</h3>
-                    <p class="text-gray-600 text-sm mt-2">আপনার গাড়ি, কিবোর্ড বা ঘরের কোনা ঝটপট পরিষ্কার করার জন্য সেরা তারহীন গ্যাজেট।</p>
-                    <div class="mt-4 flex items-center justify-between">
-                        <span class="text-2xl font-black text-indigo-600">৳৯৫০ <del class="text-sm font-normal text-gray-400">৳১,৮০০</del></span>
-                    </div>
-                </div>
-                <div class="p-5 pt-0">
-                    <a href="#order-form" onclick="setProduct('রিচার্জেবল মিনি ভ্যাকুয়াম ক্লিনার')" class="block text-center bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-xl transition">অর্ডার করুন</a>
-                </div>
-            </div>
+        <select id="pathaoCitySelect" onchange="loadPathaoZones()">
+            <option value="">ডেলিভারী জেলা সিলেক্ট করুন... *</option>
+        </select>
+        <select id="pathaoZoneSelect" disabled>
+            <option value="">আগে জেলা সিলেক্ট করুন... *</option>
+        </select>
 
-            <div class="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition flex flex-col justify-between">
-                <img src="https://images.unsplash.com/photo-1565814636199-ae8133055c1c?w=500&auto=format&fit=crop&q=60" alt="এলইডি লাইট" class="w-full h-48 object-cover">
-                <div class="p-5 flex-grow">
-                    <span class="text-xs font-bold bg-yellow-100 text-yellow-800 px-2.5 py-1 rounded">স্মার্ট লাইট</span>
-                    <h3 class="text-xl font-bold mt-2">অটোমেটিক মোশন সেন্সর নাইট লাইট</h3>
-                    <p class="text-gray-600 text-sm mt-2">অন্ধকারে মানুষ সামনে গেলেই অটো জ্বলে উঠবে। ঘরের দেয়াল বা সিঁড়ির জন্য দারুণ উপযোগী।</p>
-                    <div class="mt-4 flex items-center justify-between">
-                        <span class="text-2xl font-black text-indigo-600">৳৪৫০ <del class="text-sm font-normal text-gray-400">৳৮৫০</del></span>
-                    </div>
-                </div>
-                <div class="p-5 pt-0">
-                    <a href="#order-form" onclick="setProduct('মোশন সেন্সর নাইট লাইট')" class="block text-center bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-xl transition">অর্ডার করুন</a>
-                </div>
-            </div>
-
-            <div class="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition flex flex-col justify-between">
-                <img src="https://images.unsplash.com/photo-1618945041184-df253a65fc21?w=500&auto=format&fit=crop&q=60" alt="পোর্টেবল ফ্যান" class="w-full h-48 object-cover">
-                <div class="p-5 flex-grow">
-                    <span class="text-xs font-bold bg-blue-100 text-blue-800 px-2.5 py-1 rounded">স্মার্ট ফ্যান</span>
-                    <h3 class="text-xl font-bold mt-2">পোর্টেবল টেবিল কাম ফোল্ডিং মিনি ফ্যান</h3>
-                    <p class="text-gray-600 text-sm mt-2">লোডশেডিংয়ের টেনশন শেষ! দীর্ঘস্থায়ী ব্যাটারি ব্যাকআপ সমৃদ্ধ ৩-স্পিড কুলিং ফ্যান।</p>
-                    <div class="mt-4 flex items-center justify-between">
-                        <span class="text-2xl font-black text-indigo-600">৳১,২৫০ <del class="text-sm font-normal text-gray-400">৳২,২০০</del></span>
-                    </div>
-                </div>
-                <div class="p-5 pt-0">
-                    <a href="#order-form" onclick="setProduct('পোর্টেবল ফোল্ডিং মিনি ফ্যান')" class="block text-center bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-xl transition">অর্ডার করুন</a>
-                </div>
-            </div>
-
-            <div class="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition flex flex-col justify-between">
-                <img src="https://images.unsplash.com/photo-1485955900006-10f4d324d411?w=500&auto=format&fit=crop&q=60" alt="ইনডোর ফুলের টব" class="w-full h-48 object-cover">
-                <div class="p-5 flex-grow">
-                    <span class="text-xs font-bold bg-green-100 text-green-800 px-2.5 py-1 rounded">হোম ডেকর</span>
-                    <h3 class="text-xl font-bold mt-2">সেলফ-ওয়াটারিং নান্দনিক ইনডোর ফুলের টব</h3>
-                    <p class="text-gray-600 text-sm mt-2">গাছে প্রতিদিন পানি দেওয়ার ঝামেলা নেই। ড্রয়িং রুম ও অফিসের টেবিল সাজাতে সেরা লুক।</p>
-                    <div class="mt-4 flex items-center justify-between">
-                        <span class="text-2xl font-black text-indigo-600">৳৩২০ <del class="text-sm font-normal text-gray-400">৳৬০০</del></span>
-                    </div>
-                </div>
-                <div class="p-5 pt-0">
-                    <a href="#order-form" onclick="setProduct('সেলফ-ওয়াটারিং ইনডোর ফুলের টব')" class="block text-center bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-xl transition">অর্ডার করুন</a>
-                </div>
-            </div>
-
-        </div>
-    </main>
-
-    <section id="order-form" class="bg-indigo-50 py-12 px-4">
-        <div class="max-w-xl mx-auto bg-white p-8 rounded-3xl shadow-xl border border-indigo-100">
-            <h3 class="text-2xl font-bold text-center text-indigo-950 mb-2">অর্ডারটি কনফার্ম করতে নিচের ফর্মটি পূরণ করুন</h3>
-            <p class="text-center text-gray-500 text-sm mb-6">কোনো অগ্রিম টাকা দেওয়া লাগবে না, প্রোডাক্ট হাতে পেয়ে টাকা পরিশোধ করবেন।</p>
-            
-            <form action="#" method="POST" class="space-y-4">
-                <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-1">আপনার পছন্দের প্রোডাক্ট:</label>
-                    <input type="text" id="selected-product" readonly value="রিচার্জেবল মিনি ভ্যাকুয়াম ক্লিনার" class="w-full px-4 py-3 border rounded-xl bg-gray-100 font-bold text-indigo-700 focus:outline-none">
-                </div>
-                <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-1">আপনার নাম:</label>
-                    <input type="text" required placeholder="এখানে আপনার নাম লিখুন" class="w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-                </div>
-                <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-1">মোবাইল নাম্বার:</label>
-                    <input type="tel" required placeholder="১১ ডিজিটের মোবাইল নাম্বার" class="w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-                </div>
-                <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-1">পূর্ণ ঠিকানা:</label>
-                    <textarea required rows="3" placeholder="গ্রাম/রোড, থানা, জেলা" class="w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none"></textarea>
-                </div>
-                
-                <button type="submit" class="w-full bg-orange-500 hover:bg-orange-600 text-white font-extrabold py-4 rounded-xl text-lg shadow-lg transition-transform transform hover:scale-[1.02]">
-                    🛒 অর্ডার কনফার্ম করুন
-                </button>
-            </form>
-        </div>
-    </section>
-
-    <footer class="bg-gray-900 text-gray-400 py-6 text-center text-sm">
-        <p>&copy; 2026 স্মার্ট গ্যাজেট মার্ট | সর্বস্বত্ব সংরক্ষিত</p>
-    </footer>
+        <textarea id="custAddress" placeholder="রোড নাম্বার, বাড়ি নাম্বার বা পুরো বিস্তারিত ঠিকানা... *"></textarea>
+        
+        <select id="delCharge" onchange="calcTotal()" style="display:none;">
+            <option value="0">ডেলিভারী এলাকা সিলেক্ট করুন...</option>
+            <option value="60" id="optInside">ঢাকার ভেতরে (৳60)</option>
+            <option value="120" id="optOutside">ঢাকার বাইরে (৳120)</option>
+        </select>
+        <div style="font-size:20px; font-weight:bold; margin-bottom:20px; color: black;">মোট বিল: ৳<span id="totalBill">0</span></div>
+        <a href="#" id="waFinal" class="wa-btn">💬 WhatsApp অর্ডার নিশ্চিত করুন</a>
+        <a href="tel:01812257950" class="call-action-btn">📞 সরাসরি কল দিন</a>
+    </div>
 
     <script>
-        function setProduct(productName) {
-            document.getElementById('selected-product').value = productName;
+        // আপনার নতুন ডেমো প্রোডাক্ট লিস্ট (গ্যাজেট, লাইট, ফ্যান ও টব)
+        const staticProducts = [
+            { name: "মাল্টিফাংশনাল মিনি ভ্যাকুয়াম ক্লিনার", old: "1800", price: "950", cat: "গ্যাজেট ও ইলেকট্রনিক্স", detail: "আপনার গাড়ি, কিবোর্ড বা ঘরের কোনা ঝটপট পরিষ্কার করার জন্য সেরা তারহীন গ্যাজেট।", img: "https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=500" },
+            { name: "অটোমেটিক মোশন সেন্সর নাইট লাইট", old: "850", price: "450", cat: "স্মার্ট লাইট ও ফ্যান", detail: "অন্ধকারে মানুষ সামনে গেলেই অটো জ্বলে উঠবে। ঘরের দেয়াল বা সিঁড়ির জন্য দারুণ উপযোগী।", img: "https://images.unsplash.com/photo-1565814636199-ae8133055c1c?w=500" },
+            { name: "পোর্টেবল ফোল্ডিং মিনি রিচার্জেবল ফ্যান", old: "2200", price: "1250", cat: "স্মার্ট লাইট ও ফ্যান", detail: "লোডশেডিংয়ের টেনশন শেষ! দীর্ঘস্থায়ী ব্যাটারি ব্যাকআপ সমৃদ্ধ ৩-স্পিড কুলিং ফ্যান।", img: "https://images.unsplash.com/photo-1618945041184-df253a65fc21?w=500" },
+            { name: "সেলফ-ওয়াটারিং ইনডোর ফুলের টব", old: "600", price: "320", cat: "হোম ডেকর ও টব", detail: "গাছে প্রতিদিন পানি দেওয়ার ঝামেলা নেই। ড্রয়িংルーム ও অফিসের টেবিল সাজাতে সেরা লুক।", img: "https://images.unsplash.com/photo-1485955900006-10f4d324d411?w=500" }
+        ];
+
+        let myCart = []; 
+        let selectedPrice = 0, isCartCheckout = false;
+        let pathaoCities = [];
+        let deliveryChargesGlobal = { inside: 60, outside: 120 };
+
+        async function fetchPathaoLocations() {
+            pathaoCities = [
+                { id: 1, name: "Dhaka", zones: [{id: 1, name: "Dhaka City"}, {id: 2, name: "Savar"}, {id: 3, name: "Gazipur"}] },
+                { id: 2, name: "Chittagong", zones: [{id: 15, name: "Chittagong City"}, {id: 16, name: "Hathazari"}] },
+                { id: 3, name: "Sylhet", zones: [{id: 30, name: "Sylhet Sadar"}] },
+                { id: 4, name: "Khulna", zones: [{id: 35, name: "Khulna Sadar"}] },
+                { id: 5, name: "Rajshahi", zones: [{id: 40, name: "Rajshahi Sadar"}] },
+                { id: 6, name: "Barisal", zones: [{id: 50, name: "Barisal Sadar"}] }
+            ];
+            
+            const citySelect = document.getElementById("pathaoCitySelect");
+            pathaoCities.forEach(c => {
+                let textName = c.name === "Dhaka" ? "Dhaka (ঢাকার ভেতরে)" : c.name;
+                citySelect.innerHTML += `<option value="${c.id}">${textName}</option>`;
+            });
         }
+
+        function loadPathaoZones() {
+            const cityId = document.getElementById("pathaoCitySelect").value;
+            const zoneSelect = document.getElementById("pathaoZoneSelect");
+            zoneSelect.innerHTML = '<option value="">থানা / উপজেলা সিলেক্ট করুন... *</option>';
+            
+            if(!cityId) { zoneSelect.disabled = true; return; }
+
+            const selectedCity = pathaoCities.find(c => c.id == cityId);
+            if(selectedCity && selectedCity.zones) {
+                selectedCity.zones.forEach(z => {
+                    zoneSelect.innerHTML += `<option value="${z.id}">${z.name}</option>`;
+                });
+                zoneSelect.disabled = false;
+            }
+
+            const delChargeSelect = document.getElementById("delCharge");
+            delChargeSelect.value = (cityId == "1") ? deliveryChargesGlobal.inside : deliveryChargesGlobal.outside;
+            calcTotal();
+        }
+
+        function initApp() {
+            fetchPathaoLocations();
+            render();
+        }
+
+        function searchProducts() {
+            let text = document.getElementById("searchBar").value.toLowerCase();
+            let matched = staticProducts.filter(p => p.name.toLowerCase().includes(text));
+            displayProductsList(matched);
+        }
+
+        function render(filter = "সব পণ্য") {
+            let filteredDB = (filter === "সব পণ্য") ? staticProducts : staticProducts.filter(p => p.cat === filter);
+            displayProductsList(filteredDB);
+        }
+
+        function displayProductsList(productsList) {
+            const grid = document.getElementById("grid");
+            grid.innerHTML = "";
+            productsList.forEach((p) => {
+                grid.innerHTML += `<div class="card">
+                    <img src="${p.img}" onclick="zoomImage('${p.img}')">
+                    <h4 style="font-size:14px; margin-top:5px;">${p.name}</h4>
+                    <div class="benefit-box">${p.detail}</div>
+                    <div class="price">৳${p.price} ${p.old ? `<span class="old-price">৳${p.old}</span>` : ""}</div>
+                    <button class="buy-btn" onclick="openOrder('${p.name}', ${p.price}, false)">অর্ডার করুন</button>
+                    <button class="add-cart-btn" onclick="addToCart('${p.name}', ${p.price})">🛒 ঝুড়িতে রাখুন</button>
+                </div>`;
+            });
+        }
+
+        function addToCart(name, price) {
+            myCart.push({ name: name, price: parseInt(price) });
+            document.getElementById("cartCount").innerText = myCart.length;
+            updateCartPanel();
+            trackPixelEvent('AddToCart', { content_names: [name], value: price, currency: 'BDT' });
+            alert(`"${name}" ঝুড়িতে যোগ হয়েছে!`);
+        }
+
+        function updateCartPanel() {
+            let list = document.getElementById("cartItemsList");
+            list.innerHTML = "";
+            let subtotal = 0;
+            myCart.forEach((item, index) => {
+                subtotal += item.price;
+                list.innerHTML += `<div class="cart-item">
+                    <div><b>${item.name}</b><br>৳${item.price}</div>
+                    <div class="cart-item-remove" onclick="removeFromCart(${index})">✕</div>
+                </div>`;
+            });
+            document.getElementById("cartSubTotal").innerText = subtotal;
+            if(myCart.length === 0) { list.innerHTML = "<p style='color:#999; text-align:center;'>ঝুড়ি খালি আছে।</p>"; }
+        }
+
+        function removeFromCart(index) {
+            myCart.splice(index, 1);
+            document.getElementById("cartCount").innerText = myCart.length;
+            updateCartPanel();
+        }
+
+        function checkoutCart() {
+            if(myCart.length === 0) return alert("ঝুড়ি খালি!");
+            let total = 0;
+            let names = myCart.map(i => i.name).join(", ");
+            myCart.forEach(i => total += i.price);
+            closePanel('cartPanel');
+            openOrder(names, total, true);
+        }
+
+        function openOrder(productName, price, fromCart) {
+            selectedPrice = parseInt(price);
+            isCartCheckout = fromCart;
+            document.getElementById("selectedInfo").innerText = "পণ্য: " + productName;
+            document.getElementById("totalBill").innerText = price;
+            
+            trackPixelEvent('InitiateCheckout', { content_names: [productName], value: price, currency: 'BDT' });
+            openPanel('orderForm');
+            
+            document.getElementById("waFinal").onclick = function() {
+                let n = document.getElementById("custName").value.trim(),
+                    p = document.getElementById("custPhone").value.trim(),
+                    a = document.getElementById("custAddress").value.trim(),
+                    c = document.getElementById("delCharge").value,
+                    cityId = document.getElementById("pathaoCitySelect").value,
+                    zoneId = document.getElementById("pathaoZoneSelect").value;
+                    
+                if(!n || !p || !a || !cityId || !zoneId) {
+                    return alert("দয়া করে নাম, ফোন, জেলা ও থানা সহ সব তথ্য সঠিক উপায়ে দিন!");
+                }
+                if(p.length !== 11 || !p.startsWith("01")) {
+                    return alert("❌ মোবাইল নাম্বারটি সঠিক নয়। দয়া করে ১১ ডিজিটের সঠিক সচল নাম্বার দিন।");
+                }
+                if(a.length < 10) {
+                    return alert("❌ ফেইক অর্ডার রোধে দয়া করে বিস্তারিত ঠিকানা দিন।");
+                }
+                
+                let finalBill = selectedPrice + parseInt(c);
+                const selectedCityText = document.getElementById("pathaoCitySelect").options[document.getElementById("pathaoCitySelect").selectedIndex].text;
+                const selectedZoneText = document.getElementById("pathaoZoneSelect").options[document.getElementById("pathaoZoneSelect").selectedIndex].text;
+                let fullCombinedAddress = `${selectedCityText}, ${selectedZoneText}, ${a}`;
+
+                trackPixelEvent('Purchase', { content_names: [productName], value: finalBill, currency: 'BDT' });
+                downloadInvoice(n, p, fullCombinedAddress, productName, finalBill);
+
+                // হোয়াটসঅ্যাপে ডাইনামিক মেসেজ ফরম্যাট করার সিস্টেম
+                let encodedText = encodeURIComponent(`*নতুন অর্ডার (Al Khitmah Center)*\n\n🛍️ পণ্য: ${productName}\n👤 নাম: ${n}\n📞 ফোন: ${p}\n📍 ঠিকানা: ${fullCombinedAddress}\n💵 ডেলিভারি চার্জ: ৳${c}\n💰 সর্বমোট বিল: ৳${finalBill}\n\n(কাস্টমার ক্যাশ মেমো ডাউনলোড করেছেন)`);
+                
+                if(isCartCheckout) { myCart = []; document.getElementById("cartCount").innerText = 0; updateCartPanel(); }
+                closePanel('orderForm');
+                
+                // আপনার নতুন হোয়াটসঅ্যাপ নাম্বারে রিডাইরেক্ট হবে
+                window.open(`https://wa.me/8801812257950?text=${encodedText}`);
+            };
+        }
+
+        function downloadInvoice(name, phone, address, product, totalBill) {
+            const memoDiv = document.createElement('div');
+            memoDiv.style.width = '550px';
+            memoDiv.style.padding = '30px';
+            memoDiv.style.background = '#ffffff';
+            memoDiv.style.color = '#000000';
+            memoDiv.style.position = 'absolute';
+            memoDiv.style.left = '-9999px'; 
+
+            memoDiv.innerHTML = `
+                <div style="background:#f4f4f4; padding:20px; text-align:center; border: 1px solid #ddd; margin-bottom:20px;">
+                    <h2 style="margin:0; color:#ff0000; font-size:24px; font-weight:bold;">AL KHITMAH CENTER</h2>
+                    <p style="margin:5px 0 0 0; color:#555; font-size:12px;">Premium Quality Gadget & Home Decor</p>
+                </div>
+                <h3 style="border-bottom:2px solid #333; padding-bottom:5px; font-size:16px;">CASH MEMO / INVOICE</h3>
+                <table style="width:100%; font-size:13px; margin-top:15px; border-collapse:collapse; line-height:1.6;">
+                    <tr><td style="width:120px; font-weight:bold; padding:4px 0;">Name:</td><td>${name}</td></tr>
+                    <tr><td style="font-weight:bold; padding:4px 0;">Mobile:</td><td>${phone}</td></tr>
+                    <tr><td style="font-weight:bold; padding:4px 0;">Address:</td><td>${address}</td></tr>
+                </table>
+                <table style="width:100%; margin-top:25px; border-collapse:collapse; font-size:13px;">
+                    <thead><tr style="background:#333; color:#fff;"><th style="text-align:left; padding:8px 10px;">Product Description</th><th style="text-align:right; padding:8px 10px; width:100px;">Price</th></tr></thead>
+                    <tbody><tr><td style="padding:12px 10px; border:1px solid #ddd;">${product}</td><td style="padding:12px 10px; border:1px solid #ddd; text-align:right;">৳ ${totalBill}</td></tr></tbody>
+                </table>
+                <div style="margin-top:50px; text-align:center; color:#25d366; font-weight:bold; border-top:1px dashed #ccc; padding-top:15px;">Thank you for ordering!</div>
+            `;
+
+            document.body.appendChild(memoDiv);
+            html2canvas(memoDiv, { scale: 2 }).then(canvas => {
+                const imgData = canvas.toDataURL('image/jpeg', 1.0);
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF('p', 'pt', 'a4');
+                pdf.addImage(imgData, 'JPEG', 40, 40, 515, (canvas.height * 515) / canvas.width);
+                pdf.save(`Invoice_${phone}.pdf`);
+                document.body.removeChild(memoDiv);
+            });
+        }
+
+        function calcTotal() { 
+            let charge = parseInt(document.getElementById("delCharge").value) || 0;
+            document.getElementById("totalBill").innerText = selectedPrice + charge; 
+        }
+        function zoomImage(imgSrc) { document.getElementById("popupImg").src = imgSrc; document.getElementById("imagePopup").style.display = "flex"; }
+        function closeImagePopup() { document.getElementById("imagePopup").style.display = "none"; }
+        function toggleMenu() {
+            const menu = document.getElementById('sideMenu');
+            const overlay = document.getElementById('menuOverlay');
+            menu.classList.toggle('active');
+            overlay.style.display = menu.classList.contains('active') ? 'block' : 'none';
+        }
+        function openPanel(id) { document.getElementById(id).style.display = 'block'; }
+        function closePanel(id) { document.getElementById(id).style.display = 'none'; }
+
+        window.addEventListener('load', () => {
+            setTimeout(() => { document.getElementById('discount-popup').style.display = 'flex'; }, 2000);
+        });
+
+        initApp();
     </script>
 </body>
 </html>
