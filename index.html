@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="bn">
 <head>
@@ -74,6 +75,9 @@
         .sms-action-btn { background: #6c757d; color: white; width: 100%; padding: 15px; border: none; border-radius: 30px; font-weight: bold; display: flex; align-items: center; justify-content: center; text-decoration: none; }
         .wa-btn { background: var(--green); color: white; width: 100%; padding: 15px; border: none; border-radius: 30px; font-weight: bold; display: flex; align-items: center; justify-content: center; text-decoration: none; margin-bottom: 10px; }
         
+        #adminArea { display: none; background: #fff; margin: 15px; padding: 20px; border: 2px solid var(--red); border-radius: 15px; }
+        .confirm-btn { background: var(--blue); color: white; padding: 10px 20px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+
         .img-popup { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 8000; display: none; justify-content: center; align-items: center; flex-direction: column; padding: 20px; }
         .img-popup img { max-width: 100%; max-height: 70vh; border-radius: 12px; box-shadow: 0 5px 25px rgba(255,255,255,0.2); object-fit: contain; }
         .popup-close-btn { margin-top: 20px; background: white; color: black; border: none; padding: 12px 30px; border-radius: 25px; font-weight: bold; font-size: 16px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
@@ -83,6 +87,11 @@
         
         .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #eee; margin-bottom: 10px; color: black; }
         .cart-item-remove { color: red; cursor: pointer; font-weight: bold; }
+
+        .report-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px; text-align: center; }
+        .report-box { background: #f8f9fa; padding: 15px; border-radius: 10px; border: 1px solid #ddd; font-weight: bold; color: black; }
+        .report-box h4 { font-size: 13px; color: #666; margin-bottom: 5px; }
+        .report-box p { font-size: 20px; color: var(--blue); }
     </style>
 </head>
 <body>
@@ -111,6 +120,48 @@
         <h2 style="margin-top:40px; color:var(--red);">আমাদের বিশেষত্ব কেন?</h2><br>
         <p style="line-height:1.6; color:#444;"> ১. ১০০% বিশুদ্ধ ও প্রাকৃতিক পণ্যের নিশ্চয়তা।<br> ২. সরাসরি নিজস্ব তত্ত্বাবধানে উৎপাদিত এবং সংগৃহীত।<br> ৩. স্বাস্থ্যসম্মত উপায়ে প্যাকেজিং করা হয়।<br> ৪. দ্রুত ডেলিভারি ও মানসম্মত কাস্টমার সাপোর্ট।<br><br> আমাদের উপর আস্থা রাখার জন্য ধন্যবাদ। </p>
     </div>
+
+    <div id="adminArea">
+        <button class="close-btn" onclick="document.getElementById('adminArea').style.display='none'">✕</button>
+        <h3 style="margin-top:20px;">⚙️ অ্যাডমিন প্যানেল এবং সেলস রিপোর্ট</h3>
+        
+        <div class="report-grid" style="margin-top: 15px;">
+            <div class="report-box">
+                <h4>আজকের আনুমানিক বিক্রি</h4>
+                <p>৳<span id="dashTodaySales">0</span></p>
+            </div>
+            <div class="report-box">
+                <h4>মোট অর্ডার সংখ্যা</h4>
+                <p><span id="dashTotalOrders">0</span> টি</p>
+            </div>
+        </div>
+
+        <div id="stockAlertBox" style="display:none; padding:12px; background:#fff3cd; color:#856404; border:1px solid #ffeeba; border-radius:8px; margin-bottom:15px; font-size:13px; font-weight:bold;">⚠️ সর্তকতা: কিছু ওষুধের স্টক ৫ পিসের নিচে নেমে গেছে!</div>
+
+        <div style="background:#f8f9fa; padding:12px; border:1px solid #ddd; border-radius:8px; margin-bottom:15px; color: black;">
+            <span style="font-size:13px; font-weight:bold; color:#555;">ডেলিভারি চার্জ পরিবর্তন করুন:</span>
+            <div style="display:flex; gap:10px; margin-top:5px;">
+                <div><span style="font-size:10px;">ঢাকার ভেতরে:</span><input type="number" id="chargeInside" value="60" style="padding:6px; margin:0;"></div>
+                <div><span style="font-size:10px;">ঢাকার বাইরে:</span><input type="number" id="chargeOutside" value="120" style="padding:6px; margin:0;"></div>
+            </div>
+            <button onclick="updateDeliveryCharges()" style="background:#28a745; color:white; border:none; padding:6px 12px; border-radius:5px; font-size:12px; font-weight:bold; margin-top:5px; cursor:pointer;">চার্জ সেভ করুন</button>
+        </div>
+
+        <h4 style="margin-bottom:10px;">নতুন পণ্য যোগ করুন:</h4>
+        <input type="text" id="pName" placeholder="পণ্যের নাম">
+        <input type="number" id="pOld" placeholder="পুরানো মূল্য">
+        <input type="number" id="pPrice" placeholder="বিক্রয় মূল্য *">
+        <input type="number" id="pStock" placeholder="স্টক সংখ্যা" value="20">
+        <textarea id="pDetail" placeholder="পণ্যের বিবরণ..."></textarea>
+        <select id="pCat">
+            <option value="গ্যাজেট ও ইলেকট্রনিক্স">গ্যাজেট ও ইলেকট্রনিক্স</option>
+            <option value="স্মার্ট লাইট ও ফ্যান">স্মার্ট লাইট ও ফ্যান</option>
+            <option value="হোম ডেকর ও টব">হোম ডেকর ও টব</option>
+            <option value="অন্যান্য">অন্যান্য</option>
+        </select>
+        <input type="file" id="pImg" accept="image/*">
+        <button onclick="addNewProduct()" style="background:var(--blue); color:white; width:100%; padding:10px; border:none; border-radius:10px; font-weight:bold; cursor:pointer;">পণ্য যোগ করুন</button>
+    </div>
     
     <div class="products" id="grid"></div>
     
@@ -137,7 +188,7 @@
               style="position:absolute; top:10px; right:20px; font-size:28px; cursor:pointer; color:#aaa; font-weight:bold;">&times;</span>
         <h2 style="color:var(--green); margin-bottom:12px;">🌸 আসসালামু আলাইকুম 🌸</h2>
         <p style="font-size:15px; color:#333; line-height:1.6; margin-bottom:20px;">
-          আমাদের **আল-খিদমাহセンター** ওয়েবসাইটে আসার জন্য আপনাকে অসংখ্য ধন্যবাদ। <br>
+          আমাদের **আল-খিদমাহ সেন্টার** ওয়েবসাইটে আসার জন্য আপনাকে অসংখ্য ধন্যবাদ। <br>
           <span style="color:#555; font-size:13px;">আপনার সুস্বাস্থ্য ও দীর্ঘায়ু কামনায় আমরা দিচ্ছি ১০০% বিশুদ্ধ ও প্রিমিয়াম কোয়ালিটির পণ্য।</span>
         </p>
         <button onclick="document.getElementById('discount-popup').style.display='none'" 
@@ -150,7 +201,7 @@
         <a href="https://wa.me/8801812257950" class="nav-btn"><img src="https://cdn-icons-png.flaticon.com/512/5968/5968841.png">Message</a>
         <div class="home-btn-container"><button class="nav-btn home-link" onclick="location.reload()"><img src="https://cdn-icons-png.flaticon.com/512/1946/1946436.png"></button></div>
         <button class="nav-btn" onclick="openPanel('cartPanel')"><img src="https://cdn-icons-png.flaticon.com/512/1170/1170678.png">Cart</button>
-        <a href="https://wa.me/8801812257950?text=হ্যালো" class="nav-btn"><img src="https://cdn-icons-png.flaticon.com/512/1077/1077063.png">Support</a>
+        <button class="nav-btn" onclick="openPanel('loginPanel')"><img src="https://cdn-icons-png.flaticon.com/512/1077/1077063.png">Login</button>
     </div>
     
     <div id="categoryPanel" class="panel">
@@ -164,7 +215,7 @@
     
     <div id="orderForm" class="panel">
         <button class="close-btn" onclick="closePanel('orderForm')">✕</button>
-        <h3 id="selectedInfo" style="margin-top:40px; color:var(--red);">অর্ডার ফরম</h3><br>
+        <h3 id="selectedInfo" style="margin-top:40px; color:var(--red);">অर्डर ফরম</h3><br>
         <input type="text" id="custName" placeholder="আপনার নাম *">
         <input type="number" id="custPhone" placeholder="মোবাইল নাম্বার *">
         
@@ -186,18 +237,24 @@
         <a href="#" id="waFinal" class="wa-btn">💬 WhatsApp অর্ডার নিশ্চিত করুন</a>
         <a href="tel:01812257950" class="call-action-btn">📞 সরাসরি কল দিন</a>
     </div>
+    
+    <div id="loginPanel" class="panel">
+        <button class="close-btn" onclick="closePanel('loginPanel')">✕</button>
+        <input type="password" id="adminPass" style="margin-top:100px;" placeholder="পাসওয়ার্ড">
+        <button class="confirm-btn" onclick="loginAdmin()">প্রবেশ করুন</button>
+    </div>
 
     <script>
-        // আপনার নতুন ডেমো প্রোডাক্ট লিস্ট (গ্যাজেট, লাইট, ফ্যান ও টব)
-        const staticProducts = [
-            { name: "মাল্টিফাংশনাল মিনি ভ্যাকুয়াম ক্লিনার", old: "1800", price: "950", cat: "গ্যাজেট ও ইলেকট্রনিক্স", detail: "আপনার গাড়ি, কিবোর্ড বা ঘরের কোনা ঝটপট পরিষ্কার করার জন্য সেরা তারহীন গ্যাজেট।", img: "https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=500" },
-            { name: "অটোমেটিক মোশন সেন্সর নাইট লাইট", old: "850", price: "450", cat: "স্মার্ট লাইট ও ফ্যান", detail: "অন্ধকারে মানুষ সামনে গেলেই অটো জ্বলে উঠবে। ঘরের দেয়াল বা সিঁড়ির জন্য দারুণ উপযোগী।", img: "https://images.unsplash.com/photo-1565814636199-ae8133055c1c?w=500" },
-            { name: "পোর্টেবল ফোল্ডিং মিনি রিচার্জেবল ফ্যান", old: "2200", price: "1250", cat: "স্মার্ট লাইট ও ফ্যান", detail: "লোডশেডিংয়ের টেনশন শেষ! দীর্ঘস্থায়ী ব্যাটারি ব্যাকআপ সমৃদ্ধ ৩-স্পিড কুলিং ফ্যান।", img: "https://images.unsplash.com/photo-1618945041184-df253a65fc21?w=500" },
-            { name: "সেলফ-ওয়াটারিং ইনডোর ফুলের টব", old: "600", price: "320", cat: "হোম ডেকর ও টব", detail: "গাছে প্রতিদিন পানি দেওয়ার ঝামেলা নেই। ড্রয়িংルーム ও অফিসের টেবিল সাজাতে সেরা লুক।", img: "https://images.unsplash.com/photo-1485955900006-10f4d324d411?w=500" }
+        // ডিফল্ট ডেমো প্রোডাক্ট লিস্ট
+        const defaultProducts = [
+            { id: "p1", name: "মাল্টিফাংশনাল মিনি ভ্যাকুয়াম ক্লিনার", old: "1800", price: "950", cat: "গ্যাজেট ও ইলেকট্রনিক্স", detail: "আপনার গাড়ি, কিবোর্ড বা ঘরের কোনা ঝটপট পরিষ্কার করার জন্য সেরা তারহীন গ্যাজেট।", stock: 20, img: "https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=500" },
+            { id: "p2", name: "অটোমেটিক মোশন সেন্সর নাইট লাইট", old: "850", price: "450", cat: "স্মার্ট লাইট ও ফ্যান", detail: "অন্ধকারে মানুষ সামনে গেলেই অটো জ্বলে উঠবে। ঘরের দেয়াল বা সিঁড়ির জন্য দারুণ উপযোগী।", stock: 4, img: "https://images.unsplash.com/photo-1565814636199-ae8133055c1c?w=500" },
+            { id: "p3", name: "পোর্টেবল ফোল্ডিং মিনি রিচার্জেবল ফ্যান", old: "2200", price: "1250", cat: "স্মার্ট লাইট ও ফ্যান", detail: "লোডশেডিংয়ের টেনশন শেষ! দীর্ঘস্থায়ী ব্যাটারি ব্যাকআপ সমৃদ্ধ ৩-স্পিড কুলিং ফ্যান।", stock: 15, img: "https://images.unsplash.com/photo-1618945041184-df253a65fc21?w=500" }
         ];
 
+        let liveProducts = [];
         let myCart = []; 
-        let selectedPrice = 0, isCartCheckout = false;
+        let isAdmin = false, selectedPrice = 0, currentProductIndex = -1, isCartCheckout = false;
         let pathaoCities = [];
         let deliveryChargesGlobal = { inside: 60, outside: 120 };
 
@@ -207,8 +264,7 @@
                 { id: 2, name: "Chittagong", zones: [{id: 15, name: "Chittagong City"}, {id: 16, name: "Hathazari"}] },
                 { id: 3, name: "Sylhet", zones: [{id: 30, name: "Sylhet Sadar"}] },
                 { id: 4, name: "Khulna", zones: [{id: 35, name: "Khulna Sadar"}] },
-                { id: 5, name: "Rajshahi", zones: [{id: 40, name: "Rajshahi Sadar"}] },
-                { id: 6, name: "Barisal", zones: [{id: 50, name: "Barisal Sadar"}] }
+                { id: 5, name: "Rajshahi", zones: [{id: 40, name: "Rajshahi Sadar"}] }
             ];
             
             const citySelect = document.getElementById("pathaoCitySelect");
@@ -240,17 +296,46 @@
 
         function initApp() {
             fetchPathaoLocations();
+            
+            // লোকাল স্টোরেজ থেকে আপলোড করা প্রোডাক্ট এবং রিপোর্ট লোড করা
+            let storedProducts = localStorage.getItem('alkhitmah_products');
+            if (storedProducts) {
+                liveProducts = JSON.parse(storedProducts);
+            } else {
+                liveProducts = [...defaultProducts];
+                localStorage.setItem('alkhitmah_products', JSON.stringify(liveProducts));
+            }
+
+            let storedCharges = localStorage.getItem('alkhitmah_charges');
+            if(storedCharges) {
+                deliveryChargesGlobal = JSON.parse(storedCharges);
+                document.getElementById("chargeInside").value = deliveryChargesGlobal.inside;
+                document.getElementById("chargeOutside").value = deliveryChargesGlobal.outside;
+            }
+
+            updateDashboard();
             render();
+        }
+
+        function updateDashboard() {
+            let totalOrders = parseInt(localStorage.getItem('alkhitmah_total_orders') || "0");
+            let totalSales = parseInt(localStorage.getItem('alkhitmah_total_sales') || "0");
+            
+            document.getElementById("dashTotalOrders").innerText = totalOrders;
+            document.getElementById("dashTodaySales").innerText = totalSales;
+
+            let hasLowStock = liveProducts.some(p => p.stock <= 5);
+            document.getElementById("stockAlertBox").style.display = hasLowStock ? "block" : "none";
         }
 
         function searchProducts() {
             let text = document.getElementById("searchBar").value.toLowerCase();
-            let matched = staticProducts.filter(p => p.name.toLowerCase().includes(text));
+            let matched = liveProducts.filter(p => p.name.toLowerCase().includes(text));
             displayProductsList(matched);
         }
 
         function render(filter = "সব পণ্য") {
-            let filteredDB = (filter === "সব পণ্য") ? staticProducts : staticProducts.filter(p => p.cat === filter);
+            let filteredDB = (filter === "সব পণ্য") ? liveProducts : liveProducts.filter(p => p.cat === filter);
             displayProductsList(filteredDB);
         }
 
@@ -258,19 +343,26 @@
             const grid = document.getElementById("grid");
             grid.innerHTML = "";
             productsList.forEach((p) => {
+                let deleteButton = "";
+                if (isAdmin) {
+                    deleteButton = `<button onclick="deleteProduct('${p.id}')" style="color:red; border:none; background:none; font-size:11px; margin-top:10px; cursor:pointer; font-weight:bold;">[ডিলিট করুন]</button>`;
+                }
+                
                 grid.innerHTML += `<div class="card">
                     <img src="${p.img}" onclick="zoomImage('${p.img}')">
                     <h4 style="font-size:14px; margin-top:5px;">${p.name}</h4>
                     <div class="benefit-box">${p.detail}</div>
+                    <div style="font-size:11px; color:#666; margin-bottom:3px;">স্টক: ${p.stock} পিস</div>
                     <div class="price">৳${p.price} ${p.old ? `<span class="old-price">৳${p.old}</span>` : ""}</div>
-                    <button class="buy-btn" onclick="openOrder('${p.name}', ${p.price}, false)">অর্ডার করুন</button>
-                    <button class="add-cart-btn" onclick="addToCart('${p.name}', ${p.price})">🛒 ঝুড়িতে রাখুন</button>
+                    <button class="buy-btn" onclick="openOrder('${p.name}', ${p.price}, '${p.id}', false)">অর্ডার করুন</button>
+                    <button class="add-cart-btn" onclick="addToCart('${p.name}', ${p.price}, '${p.id}')">🛒 ঝুড়িতে রাখুন</button>
+                    ${deleteButton}
                 </div>`;
             });
         }
 
-        function addToCart(name, price) {
-            myCart.push({ name: name, price: parseInt(price) });
+        function addToCart(name, price, id) {
+            myCart.push({ name: name, price: parseInt(price), id: id });
             document.getElementById("cartCount").innerText = myCart.length;
             updateCartPanel();
             trackPixelEvent('AddToCart', { content_names: [name], value: price, currency: 'BDT' });
@@ -304,10 +396,10 @@
             let names = myCart.map(i => i.name).join(", ");
             myCart.forEach(i => total += i.price);
             closePanel('cartPanel');
-            openOrder(names, total, true);
+            openOrder(names, total, "", true);
         }
 
-        function openOrder(productName, price, fromCart) {
+        function openOrder(productName, price, productId, fromCart) {
             selectedPrice = parseInt(price);
             isCartCheckout = fromCart;
             document.getElementById("selectedInfo").innerText = "পণ্য: " + productName;
@@ -328,10 +420,7 @@
                     return alert("দয়া করে নাম, ফোন, জেলা ও থানা সহ সব তথ্য সঠিক উপায়ে দিন!");
                 }
                 if(p.length !== 11 || !p.startsWith("01")) {
-                    return alert("❌ মোবাইল নাম্বারটি সঠিক নয়। দয়া করে ১১ ডিজিটের সঠিক সচল নাম্বার দিন।");
-                }
-                if(a.length < 10) {
-                    return alert("❌ ফেইক অর্ডার রোধে দয়া করে বিস্তারিত ঠিকানা দিন।");
+                    return alert("❌ মোবাইল নাম্বারটি সঠিক নয়।");
                 }
                 
                 let finalBill = selectedPrice + parseInt(c);
@@ -339,16 +428,34 @@
                 const selectedZoneText = document.getElementById("pathaoZoneSelect").options[document.getElementById("pathaoZoneSelect").selectedIndex].text;
                 let fullCombinedAddress = `${selectedCityText}, ${selectedZoneText}, ${a}`;
 
+                // স্টক ও সেলস রিপোর্ট লোকাল আপডেট (ফায়ারবেস ছাড়া)
+                if(!isCartCheckout) {
+                    let prod = liveProducts.find(x => x.id === productId);
+                    if(prod && prod.stock > 0) prod.stock--;
+                } else {
+                    myCart.forEach(item => {
+                        let prod = liveProducts.find(x => x.id === item.id);
+                        if(prod && prod.stock > 0) prod.stock--;
+                    });
+                }
+
+                // ড্যাশবোর্ড ক্যালকুলেশন সংরক্ষণ
+                let currentOrders = parseInt(localStorage.getItem('alkhitmah_total_orders') || "0") + 1;
+                let currentSales = parseInt(localStorage.getItem('alkhitmah_total_sales') || "0") + finalBill;
+                localStorage.setItem('alkhitmah_total_orders', currentOrders);
+                localStorage.setItem('alkhitmah_total_sales', currentSales);
+                localStorage.setItem('alkhitmah_products', JSON.stringify(liveProducts));
+
                 trackPixelEvent('Purchase', { content_names: [productName], value: finalBill, currency: 'BDT' });
                 downloadInvoice(n, p, fullCombinedAddress, productName, finalBill);
 
-                // হোয়াটসঅ্যাপে ডাইনামিক মেসেজ ফরম্যাট করার সিস্টেম
-                let encodedText = encodeURIComponent(`*নতুন অর্ডার (Al Khitmah Center)*\n\n🛍️ পণ্য: ${productName}\n👤 নাম: ${n}\n📞 ফোন: ${p}\n📍 ঠিকানা: ${fullCombinedAddress}\n💵 ডেলিভারি চার্জ: ৳${c}\n💰 সর্বমোট বিল: ৳${finalBill}\n\n(কাস্টমার ক্যাশ মেমো ডাউনলোড করেছেন)`);
+                let encodedText = encodeURIComponent(`*নতুন অর্ডার (Al Khitmah Center)*\n\n🛍️ পণ্য: ${productName}\n👤 নাম: ${n}\n📞 ফোন: ${p}\n📍 ঠিকানা: ${fullCombinedAddress}\n💵 ডেলিভারি চার্জ: ৳${c}\n💰 সর্বমোট বিল: ৳${finalBill}`);
                 
                 if(isCartCheckout) { myCart = []; document.getElementById("cartCount").innerText = 0; updateCartPanel(); }
                 closePanel('orderForm');
+                updateDashboard();
+                render();
                 
-                // আপনার নতুন হোয়াটসঅ্যাপ নাম্বারে রিডাইরেক্ট হবে
                 window.open(`https://wa.me/8801812257950?text=${encodedText}`);
             };
         }
@@ -365,7 +472,7 @@
             memoDiv.innerHTML = `
                 <div style="background:#f4f4f4; padding:20px; text-align:center; border: 1px solid #ddd; margin-bottom:20px;">
                     <h2 style="margin:0; color:#ff0000; font-size:24px; font-weight:bold;">AL KHITMAH CENTER</h2>
-                    <p style="margin:5px 0 0 0; color:#555; font-size:12px;">Premium Quality Gadget & Home Decor</p>
+                    <p style="margin:5px 0 0 0; color:#555; font-size:12px;">Premium Quality Products</p>
                 </div>
                 <h3 style="border-bottom:2px solid #333; padding-bottom:5px; font-size:16px;">CASH MEMO / INVOICE</h3>
                 <table style="width:100%; font-size:13px; margin-top:15px; border-collapse:collapse; line-height:1.6;">
@@ -383,12 +490,66 @@
             document.body.appendChild(memoDiv);
             html2canvas(memoDiv, { scale: 2 }).then(canvas => {
                 const imgData = canvas.toDataURL('image/jpeg', 1.0);
-                const { jsPDF } = window.jspdf;
                 const pdf = new jsPDF('p', 'pt', 'a4');
                 pdf.addImage(imgData, 'JPEG', 40, 40, 515, (canvas.height * 515) / canvas.width);
                 pdf.save(`Invoice_${phone}.pdf`);
                 document.body.removeChild(memoDiv);
             });
+        }
+
+        // ⚙️ অ্যাডমিন প্যানেল ফাংশনস (লোকাল স্টোরেজ ভিত্তিক)
+        function addNewProduct() {
+            let n = document.getElementById("pName").value, o = document.getElementById("pOld").value,
+                p = document.getElementById("pPrice").value, st = document.getElementById("pStock").value,
+                d = document.getElementById("pDetail").value, c = document.getElementById("pCat").value,
+                f = document.getElementById("pImg").files[0];
+                
+            if(!n || !p || !f) return alert("সব তথ্য সঠিক উপায়ে দিন!");
+            
+            let r = new FileReader();
+            r.onload = function(e) {
+                let newProd = {
+                    id: "p_" + Date.now(),
+                    name: n, old: o, price: p, stock: parseInt(st) || 20, detail: d, cat: c, img: e.target.result
+                };
+                liveProducts.push(newProd);
+                localStorage.setItem('alkhitmah_products', JSON.stringify(liveProducts));
+                alert("পণ্যটি সফলভাবে যোগ হয়েছে!");
+                
+                document.getElementById("pName").value = ""; document.getElementById("pOld").value = "";
+                document.getElementById("pPrice").value = ""; document.getElementById("pDetail").value = "";
+                updateDashboard();
+                render();
+            };
+            r.readAsDataURL(f);
+        }
+
+        function deleteProduct(id) {
+            if(confirm("এই পণ্যটি মুছে ফেলবেন?")) {
+                liveProducts = liveProducts.filter(p => p.id !== id);
+                localStorage.setItem('alkhitmah_products', JSON.stringify(liveProducts));
+                updateDashboard();
+                render();
+            }
+        }
+
+        function updateDeliveryCharges() {
+            let inside = document.getElementById("chargeInside").value;
+            let outside = document.getElementById("chargeOutside").value;
+            deliveryChargesGlobal = { inside: parseInt(inside), outside: parseInt(outside) };
+            localStorage.setItem('alkhitmah_charges', JSON.stringify(deliveryChargesGlobal));
+            alert("ডেলিভারি চার্জ সেভ হয়েছে!");
+        }
+
+        function loginAdmin() { 
+            if(document.getElementById("adminPass").value === "01943") { 
+                isAdmin = true; 
+                document.getElementById("adminArea").style.display = "block"; 
+                closePanel('loginPanel'); 
+                render(); 
+            } else {
+                alert("ভুল পাসওয়ার্ড!");
+            }
         }
 
         function calcTotal() { 
